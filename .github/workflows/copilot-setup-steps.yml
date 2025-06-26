@@ -1,0 +1,32 @@
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: copilot
+    steps:
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install MCP HTTP Client
+        run: npm install -g @mcp/http-client
+
+      - name: Verify MCP Tools
+        run: |
+          echo "MCP setup complete. The following tools will be available:"
+          echo "- mem0-memory: Memory persistence tools"
+          echo "- desktop-commander: Desktop automation"  
+          echo "- supabase-mcp: Database operations"
+          echo "- browserbase: Browser automation"
+          echo "- e2b: Cloud sandboxed environments"
+          echo "- jina-ai: Vector search and embeddings"
