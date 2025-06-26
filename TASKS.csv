@@ -1,0 +1,81 @@
+task_id,task_name,description,dependencies,estimated_time,priority,status,assigned_agent
+T001,Create project root directory,Initialize git repo and base folders (src/, docker/, docs/, workflows/, cli/, tests/),,1,1,TODO,SETUP_AGENT
+T002,Define virtual environment,Add pyenv + Poetry settings for Python 3.10,,1,1,TODO,SETUP_AGENT
+T003,Write requirements.txt,Pin core libs: crawl4ai, fastapi, fastmcp, playwright, requests, sqlalchemy, sqlite-utils,n8n,1,1,TODO,SETUP_AGENT
+T004,Dockerfile-base,Build common base image with Python 3.10, T002,T003,2,1,TODO,SETUP_AGENT
+T005,Compose directory layout,Create sub-dirs (scraper/, image/, data/, mcp/, workflows/, deploy/, cli/),T001,1,2,TODO,SETUP_AGENT
+T006,Generate .env template,Define runtime env vars (EBAY_COOKIE, PROXY_URL, DB_PATH, MCP_PORT),T001,0.5,2,TODO,SETUP_AGENT
+T007,Poetry install deps,Install libs inside venv, T002,T003,0.5,1,TODO,SETUP_AGENT
+T008,Design scraper architecture,Outline Crawl4AI spiders, queues, middlewares,,3,1,TODO,SCRAPER_AGENT
+T009,Implement eBay search spider,Paginated search by category & keywords, T008,4,1,TODO,SCRAPER_AGENT
+T010,Implement eBay item spider,Parse individual listing details (title, price, images, attrs), T009,4,1,TODO,SCRAPER_AGENT
+T011,Anti-bot techniques,Add proxy rotation & UA randomization to crawler, T009,2,1,TODO,SCRAPER_AGENT
+T012,Retry & backoff logic,Robust error handling / exponential backoff, T009,2,2,TODO,SCRAPER_AGENT
+T013,Logging framework,Structured JSON logs for scraper, T008,1,2,TODO,SCRAPER_AGENT
+T014,Unit tests for spiders,pytest cases for search & item spiders, T010,T011,3,2,TODO,TEST_AGENT
+T015,Image downloader,Download all gallery images, T010,2,1,TODO,IMAGE_AGENT
+T016,Image categorizer,Detect jewelry type via filename & listing data, T015,2,1,TODO,IMAGE_AGENT
+T017,Image processor,Resize to 1024px, compress WebP, generate thumbnails, T015,3,2,TODO,IMAGE_AGENT
+T018,Store images by category,Directory tree: images/<category>/<sku>/, T016,1,1,TODO,IMAGE_AGENT
+T019,Write EXIF metadata,Embed listing URL & id in image metadata, T017,1,3,TODO,IMAGE_AGENT
+T020,SQLite schema design,Tables: listings, images, categories, scrape_runs, T010,2,1,TODO,DATA_AGENT
+T021,SQLAlchemy models,ORM classes for schema, T020,2,1,TODO,DATA_AGENT
+T022,Data ingestion pipeline,Save scraped JSON into DB, T010,T020,T021,2,1,TODO,DATA_AGENT
+T023,Export CSV/JSON,Utility to dump listings per filter, T021,1.5,2,TODO,DATA_AGENT
+T024,Data validation rules,Ensure price >0, images exist, T022,1,2,TODO,DATA_AGENT
+T025,FastMCP project scaffold,Create FastAPI app with FastMCP mixin, T004,1.5,1,TODO,MCP_AGENT
+T026,Define MCP tools:TriggerScrape,BuildScrapeReport,ImageSearch, T025,2.5,1,TODO,MCP_AGENT
+T027,Implement TriggerScrape tool,Call scraper via message queue, T009,T026,2,1,TODO,MCP_AGENT
+T028,Implement BuildScrapeReport,Aggregate DB stats & return markdown, T022,T026,2,2,TODO,MCP_AGENT
+T029,Implement ImageSearch tool,Search images by category & return URLs, T018,T026,2,2,TODO,MCP_AGENT
+T030,Write MCP prompts,Define system & user prompt templates, T026,1,2,TODO,MCP_AGENT
+T031,MCP auth middleware,API-key header & rate limit, T025,1,2,TODO,MCP_AGENT
+T032,MCP unit tests,pytest for tools & endpoints, T027,T028,T029,2,2,TODO,TEST_AGENT
+T033,n8n credentials setup,Create creds for DB, MCP, email, slack, T006,1,1,TODO,WORKFLOW_AGENT
+T034,Workflow: Daily scrape schedule,Cron node → HTTP call TriggerScrape, T027,T033,1.5,1,TODO,WORKFLOW_AGENT
+T035,Workflow: Image processing queue,Watch directory → run Image processor → update DB, T017,T033,2,1,TODO,WORKFLOW_AGENT
+T036,Workflow: Error alert,IF node on failures → Slack & Email, T034,T035,1,2,TODO,WORKFLOW_AGENT
+T037,Workflow: KPI dashboard export,Weekly summary → Google Sheets, T028,T033,1.5,3,TODO,WORKFLOW_AGENT
+T038,Workflow monitoring board,Use n8n nodes to visualize run stats, T034,T035,1,3,TODO,WORKFLOW_AGENT
+T039,Create n8n dockerfile,Self-hosted n8n with custom nodes, T004,1,2,TODO,DEPLOY_AGENT
+T040,Dockerfile-scraper,Build image for Crawl4AI engine, T004,1,1,TODO,DEPLOY_AGENT
+T041,Dockerfile-mcp,Build FastMCP server image, T004,1,1,TODO,DEPLOY_AGENT
+T042,docker-compose.yml,Services: db, scraper, mcp, n8n, proxy, T039,T040,T041,1.5,1,TODO,DEPLOY_AGENT
+T043,Healthcheck scripts,Bash scripts + curl for /health endpoints, T042,1,2,TODO,DEPLOY_AGENT
+T044,Kubernetes manifests (optional),Helm charts for prod cluster, T042,3,4,TODO,DEPLOY_AGENT
+T045,GitHub Actions CI,Build, test, push images, T040,T041,T032,2,2,TODO,DEPLOY_AGENT
+T046,CLI scaffold,Typer-based CLI entrypoint, T021,1,2,TODO,CLI_AGENT
+T047,CLI command: scrape,Args (category, pages) → call MCP TriggerScrape, T027,T046,1,2,TODO,CLI_AGENT
+T048,CLI command: export,Dump data to path (--format csv/json), T023,T046,1,2,TODO,CLI_AGENT
+T049,CLI command: stats,Show DB counts & last run, T022,T046,1,3,TODO,CLI_AGENT
+T050,CLI packaging,setup.cfg / pyproject for pip install, T046,1,3,TODO,CLI_AGENT
+T051,Unit tests: image pipeline,Test resize, categorization, T017,T018,2,2,TODO,TEST_AGENT
+T052,Unit tests: data layer,CRUD tests, T021,T022,2,2,TODO,TEST_AGENT
+T053,Integration test: full scrape,Run scraper → DB → images, T010,T022,T017,3,1,TODO,TEST_AGENT
+T054,Load test: MCP,Locust script for 100r/s, T025,2,3,TODO,TEST_AGENT
+T055,E2E test: n8n workflows,Trigger cron → verify DB records, T034,T035,3,2,TODO,TEST_AGENT
+T056,Write README.md,Overview, setup, quick start, T042,1,1,TODO,DOC_AGENT
+T057,API reference docs,Autogen with Swagger & docstrings, T025,1.5,2,TODO,DOC_AGENT
+T058,User guide: CLI,Usage examples, T050,1,3,TODO,DOC_AGENT
+T059,Developer guide,Architecture, contribution guidelines, T056,2,3,TODO,DOC_AGENT
+T060,Diagram: system architecture,Mermaid or drawio, T059,1,3,TODO,DOC_AGENT
+T061,Environment test script,verify.sh to assert Python & Docker versions, T004,0.5,2,TODO,SETUP_AGENT
+T062,Pre-commit hooks,black, isort, flake8, T004,0.5,3,TODO,SETUP_AGENT
+T063,Crawl4AI settings file,config.yml with concurrency, retries, T008,0.5,2,TODO,SCRAPER_AGENT
+T064,Proxy manager module,Rotate proxies from txt list, T011,1,2,TODO,SCRAPER_AGENT
+T065,User agent pool JSON,Curated UA strings, T011,0.5,3,TODO,SCRAPER_AGENT
+T066,Image hash deduplication,Skip duplicate images via perceptual hash, T017,2,2,TODO,IMAGE_AGENT
+T067,Category ML model (bonus),Tiny CNN to auto-classify jewelry, T016,4,4,TODO,IMAGE_AGENT
+T068,DB migration script,alembic revision initial, T020,1,3,TODO,DATA_AGENT
+T069,Data backup cron,Daily dump to /backup, T022,1,3,TODO,DATA_AGENT
+T070,MCP swagger docs,enable /docs endpoint, T025,0.5,2,TODO,MCP_AGENT
+T071,n8n credential vault setup,Encrypt secrets, T033,0.5,2,TODO,WORKFLOW_AGENT
+T072,n8n workflow import script,CLI to auto-import JSON via API, T034,T035,1,3,TODO,WORKFLOW_AGENT
+T073,Docker entrypoint scripts,Start services with health checks, T040,T041,1.5,2,TODO,DEPLOY_AGENT
+T074,QA checklist,Manual verification steps, T055,1,3,TODO,TEST_AGENT
+T075,Release notes template,docs/RELEASE.md, T045,0.5,3,TODO,DOC_AGENT
+T076,License selection,Add MIT license file, T056,0.25,3,TODO,DOC_AGENT
+T077,Security considerations doc,Threat model & secrets handling, T031,1,3,TODO,DOC_AGENT
+T078,Postman collection,API examples for MCP, T025,0.5,3,TODO,DOC_AGENT
+T079,Demo Jupyter notebook,Show data queries & images, T022,T018,1.5,4,TODO,DOC_AGENT
+T080,Project wrap-up report,Lessons learned, future work, T074,1,4,TODO,PROJECT_MANAGER
